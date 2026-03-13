@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>75 Ohm Coax - Page 2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        .title-bar {
+            background-color: #1a5276;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .title-bar img {
+            height: 60px; /* adjust-logo-size */
+        }
+
+        .title-bar h1 {
+            font-size: 30px; /* adjust-font-size */
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 60px;
+        }
+
+        .hero-image img {
+            max-height: 45vh; /* adjust-logo-size */
+            max-width: 80%;
+            object-fit: contain;
+        }
+
+        .presentation-title {
+            font-size: 52px; /* adjust-font-size */
+            font-weight: bold;
+            color: #1a5276;
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .presenter {
+            font-size: 28px; /* adjust-font-size */
+            color: #555;
+            text-align: center;
+        }
+
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 10;
+        }
+
+        .nav-buttons a {
+            font-size: 20px;
+            color: #1a5276;
+            text-decoration: none;
+            padding: 8px 20px;
+            border: 2px solid #1a5276;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #1a5276;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <img src="75_ohm_coax.png" alt="75 Ohm Coax">
+        <h1>75 Ohm Coax for Amateur Radio</h1>
+    </div>
+
+    <div class="content">
+        <div class="hero-image">
+            <img src="75_ohm_coax.png" alt="75 Ohm RG-6 Coaxial Cable">
+        </div>
+        <div class="presentation-title">75 Ohm Coax for Amateur Radio</div>
+        <div class="presenter">Jim Glover, KX0U</div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="page01.html">&laquo; prev</a>
+        <a href="page03.html">next &raquo;</a>
+    </div>
+</body>
+</html>

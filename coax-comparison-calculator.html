@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>75Ω vs 50Ω Coax Comparison Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #333; padding: 16px; }
+  h1 { font-size: 20px; margin-bottom: 2px; }
+  .subtitle { font-size: 12px; color: #666; margin-bottom: 14px; }
+  .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 16px; }
+  .tab { padding: 8px 18px; cursor: pointer; border: none; background: none; font-size: 14px;
+    color: #666; border-bottom: 3px solid transparent; font-weight: 400; }
+  .tab.active { color: #2563eb; font-weight: 700; border-bottom-color: #2563eb; }
+  .tab:hover { color: #2563eb; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .controls { background: #f8f9fa; border-radius: 6px; padding: 12px; margin-bottom: 16px; }
+  .control-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .control-group label { display: block; font-size: 12px; color: #555; margin-bottom: 2px; }
+  .control-group input, .control-group select {
+    padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+  .control-group input { width: 85px; }
+  .control-group select { font-size: 13px; }
+  .info-box { margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 4px;
+    border: 1px solid #e0e0e0; font-size: 12px; }
+  .info-box strong { color: #333; }
+  .cable-checks { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; font-size: 12px; }
+  .cable-checks label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .cable-swatch { display: inline-block; width: 16px; height: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 6px 8px; background: #f0f0f0; border-bottom: 2px solid #ccc; text-align: right; }
+  th:first-child { text-align: left; }
+  td { padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right; }
+  td:first-child { text-align: left; font-weight: 600; }
+  tr.best { background: #f0f7ff; }
+  .star { color: #2563eb; font-weight: 700; }
+  .note { font-size: 11px; color: #888; margin-top: 6px; }
+  .chart-container { position: relative; margin-top: 12px; }
+  .chart-title { font-size: 13px; font-weight: 600; margin: 16px 0 4px 0; }
+  .legend-hint { margin-top: 8px; display: flex; gap: 16px; font-size: 11px; color: #888; }
+  .notes-box { margin-top: 20px; padding: 10px; background: #fffbe6; border-radius: 6px;
+    font-size: 11px; color: #777; }
+  .feedpoint-display { font-size: 12px; color: #888; align-self: center; }
+  @media (max-width: 700px) {
+    .control-row { gap: 10px; }
+    .control-group input { width: 70px; }
+    table { font-size: 11px; }
+    th, td { padding: 4px 5px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>75Ω vs 50Ω Coax Comparison Calculator</h1>
+<div class="subtitle">Loss model: dB/100ft = A·√f + B·f &nbsp;|&nbsp; Full transmission line equation for shack-end SWR &nbsp;|&nbsp; Average ground (σ=5 mS/m, εr=13)</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="single">Single Frequency</button>
+  <button class="tab" data-tab="band">Band Sweep</button>
+  <button class="tab" data-tab="length">Length Sweep</button>
+</div>
+
+<!-- ==================== SINGLE FREQUENCY ==================== -->
+<div id="single" class="panel active">
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-group"><label>R (Ω)</label><input type="number" id="sf-r" value="70"></div>
+      <div class="control-group"><label>jX (Ω)</label><input type="number" id="sf-x" value="0"></div>
+      <div class="control-group"><label>Freq (MHz)</label><input type="number" id="sf-freq" value="14.175" step="0.001"></div>
+      <div class="control-group"><label>Length (ft)</label><input type="number" id="sf-len" value="50"></div>
+      <div class="feedpoint-display" id="sf-feedpoint">Feedpoint: 70+0j Ω</div>
+    </div>
+  </div>
+  <div style="overflow-x:auto"><table id="sf-table"></table></div>
+  <div class="note">★ = highest power delivered to antenna</div>
+  <div class="chart-title">Power Delivered to Antenna (%)</div>
+  <div class="chart-container" style="max-height:220px"><canvas id="sf-bar-chart"></canvas></div>
+</div>
+
+<!-- ==================== BAND SWEEP ==================== -->
+<div id="band" class="panel">
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-group"><label>Band</label>
+        <select id="bs-band"></select>
+      </div>
+      <div class="control-group"><label>Antenna type</label>
+        <select id="bs-antenna" style="width:230px"></select>
+      </div>
+      <div class="control-group" id="bs-height-group" style="display:none">
+        <label id="bs-height-label">Center height (ft)</label>
+        <input type="number" id="bs-height" value="40">
+      </div>
+      <div class="control-group" id="bs-customr-group" style="display:none">
+        <label>R₀ (Ω)</label><input type="number" id="bs-customr" value="70">
+      </div>
+      <div class="control-group" id="bs-customq-group" style="display:none">
+        <label>Q</label><input type="number" id="bs-customq" value="12">
+      </div>
+      <div class="control-group"><label>Cable length (ft)</label><input type="number" id="bs-len" value="50"></div>
+      <div class="control-group"><label>Show</label>
+        <select id="bs-metric">
+          <option value="swrShack">SWR (at shack — 50Ω source)</option>
+          <option value="swrFeedline">SWR (on feedline)</option>
+          <option value="totalLoss">Total Loss (dB)</option>
+          <option value="matchedLoss">Matched Loss (dB)</option>
+          <option value="power">Power Delivered (%)</option>
+        </select>
+      </div>
+    </div>
+    <div class="info-box" id="bs-info"></div>
+  </div>
+  <div class="cable-checks" id="bs-cable-checks"></div>
+  <div class="chart-container" style="max-height:380px"><canvas id="bs-chart"></canvas></div>
+  <div class="legend-hint">
+    <span>── solid = 75Ω cables</span>
+    <span>╌╌ dashed = 50Ω cables</span>
+  </div>
+</div>
+
+<!-- ==================== LENGTH SWEEP ==================== -->
+<div id="length" class="panel">
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-group"><label>R (Ω)</label><input type="number" id="ls-r" value="70"></div>
+      <div class="control-group"><label>jX (Ω)</label><input type="number" id="ls-x" value="0"></div>
+      <div class="control-group"><label>Freq (MHz)</label><input type="number" id="ls-freq" value="14.175" step="0.001"></div>
+      <div class="control-group"><label>Max length (ft)</label><input type="number" id="ls-maxlen" value="200"></div>
+    </div>
+  </div>
+  <div class="cable-checks" id="ls-cable-checks"></div>
+  <div class="chart-title">Power Delivered vs. Cable Length</div>
+  <div class="chart-container" style="max-height:380px"><canvas id="ls-power-chart"></canvas></div>
+  <div class="chart-title">Total Loss vs. Cable Length</div>
+  <div class="chart-container" style="max-height:320px"><canvas id="ls-loss-chart"></canvas></div>
+</div>
+
+<div class="notes-box">
+  <strong>Notes:</strong> Cable loss coefficients are approximate and representative of typical cable; actual loss varies
+  by manufacturer. Dipole and inverted-V impedances are interpolated from NEC-modeled data over average ground
+  (σ=5 mS/m, εr=13). The inverted-V 90° model uses 45° droop each side; the 120° model uses 30° droop each side.
+  Off-resonance reactance uses a series-RLC approximation with the stated Q factor.
+  Shack-end SWR is computed using the full transmission line equation (Z<sub>in</sub> = Z₀ · (Z<sub>L</sub> + Z₀·tanh(γl)) / (Z₀ + Z<sub>L</sub>·tanh(γl))),
+  then the reflection coefficient is referenced to a 50Ω source impedance. This correctly accounts for impedance
+  transformation along the line, including cases where the line Z₀ differs from the source impedance.
+  These models are adequate for comparison purposes but are not a substitute for measured data
+  or modeling your specific antenna and site.
+</div>
+
+<script>
+// ─────────────────── DATA ───────────────────
+const CABLES = {
+  "RG-6 (75Ω)":   { z0: 75, A: 0.17, B: 0.003,  vf: 0.83, color: "#2563eb", dash: [] },
+  "RG-59 (75Ω)":  { z0: 75, A: 0.30, B: 0.005,  vf: 0.82, color: "#7c3aed", dash: [] },
+  "RG-58 (50Ω)":  { z0: 50, A: 0.35, B: 0.007,  vf: 0.66, color: "#dc2626", dash: [6,4] },
+  "RG-8X (50Ω)":  { z0: 50, A: 0.22, B: 0.0035, vf: 0.82, color: "#ea580c", dash: [6,4] },
+  "RG-213 (50Ω)": { z0: 50, A: 0.13, B: 0.0025, vf: 0.66, color: "#059669", dash: [6,4] },
+};
+const CABLE_NAMES = Object.keys(CABLES);
+const SOURCE_Z = 50; // Transmitter source impedance
+
+const BANDS = {
+  "160m": [1.8, 2.0, 1.9],    "80m": [3.5, 4.0, 3.75],
+  "60m": [5.33, 5.405, 5.3675],"40m": [7.0, 7.3, 7.15],
+  "30m": [10.1, 10.15, 10.125],"20m": [14.0, 14.35, 14.175],
+  "17m": [18.068, 18.168, 18.118],"15m": [21.0, 21.45, 21.225],
+  "12m": [24.89, 24.99, 24.94],"10m": [28.0, 29.7, 28.85],
+  "6m": [50.0, 54.0, 52.0],   "2m": [144.0, 148.0, 146.0],
+  "1.25m": [222.0, 225.0, 223.5],"70cm": [420.0, 450.0, 435.0],
+};
+
+const DIPOLE_TABLE = [
+  [.025,14],[.05,23],[.075,32],[.10,40],[.125,47],[.15,52],[.175,57],[.20,62],[.225,66],[.25,68],
+  [.275,72],[.30,76],[.325,79],[.35,82],[.375,82],[.40,80],[.425,78],[.45,76],[.475,74],[.50,72],
+  [.55,66],[.60,62],[.65,68],[.70,76],[.75,84],[.80,84],[.85,78],[.90,73],[.95,68],[1.0,72],
+  [1.1,67],[1.2,75],[1.3,78],[1.4,74],[1.5,73]
+];
+const INV_V_90_TABLE = [
+  [.025,10],[.05,18],[.075,24],[.10,30],[.125,35],[.15,38],[.175,41],[.20,44],[.225,46],[.25,48],
+  [.275,50],[.30,52],[.325,53],[.35,55],[.375,56],[.40,56],[.425,55],[.45,54],[.475,52],[.50,50],
+  [.55,47],[.60,46],[.65,48],[.70,52],[.75,55],[.80,55],[.85,52],[.90,50],[.95,48],[1.0,50],
+  [1.1,48],[1.2,51],[1.3,52],[1.4,50],[1.5,50]
+];
+const INV_V_120_TABLE = [
+  [.025,12],[.05,20],[.075,28],[.10,35],[.125,40],[.15,45],[.175,49],[.20,53],[.225,56],[.25,58],
+  [.275,61],[.30,64],[.325,66],[.35,68],[.375,69],[.40,68],[.425,66],[.45,64],[.475,62],[.50,60],
+  [.55,56],[.60,54],[.65,57],[.70,63],[.75,68],[.80,68],[.85,64],[.90,61],[.95,58],[1.0,60],
+  [1.1,57],[1.2,62],[1.3,64],[1.4,61],[1.5,61]
+];
+
+const ANTENNAS = {
+  "Half-wave dipole":         { table: DIPOLE_TABLE,    q:12, hLabel:"Center height", desc:"Resonant half-wave dipole, horizontal, over average ground", needsH:true },
+  "Inverted-V (90° included)":{ table: INV_V_90_TABLE,  q:10, hLabel:"Apex height",   desc:"Resonant inverted-V, 90° included angle (45° droop), over average ground", needsH:true },
+  "Inverted-V (120° included)":{ table: INV_V_120_TABLE, q:11, hLabel:"Apex height",   desc:"Resonant inverted-V, 120° included angle (30° droop), over average ground", needsH:true },
+  "Full-wave loop (~110Ω)":   { fixedR:110, q:10, desc:"Horizontal full-wave loop fed at current maximum, ~1λ circumference" },
+  "¼λ GP, horiz. radials (~36Ω)": { fixedR:36, q:8, desc:"Quarter-wave vertical over horizontal radials" },
+  "¼λ GP, 45° drooped radials (~50Ω)": { fixedR:50, q:8, desc:"Quarter-wave ground plane, radials drooped 45° (classic GP)" },
+  "Vertical dipole (~73Ω)":    { fixedR:73, q:8, desc:"Vertical dipole (half-wave), free-standing or with mast" },
+  "Custom":                   { fixedR:50, q:12, desc:"Enter your own impedance and Q values", isCustom:true },
+};
+
+let enabledCables = {}; CABLE_NAMES.forEach(n => enabledCables[n] = true);
+
+// ─────────────────── COMPLEX MATH ───────────────────
+// Complex numbers as [real, imag]
+function cadd(a, b) { return [a[0]+b[0], a[1]+b[1]]; }
+function csub(a, b) { return [a[0]-b[0], a[1]-b[1]]; }
+function cmul(a, b) { return [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]]; }
+function cdiv(a, b) {
+  const d = b[0]*b[0] + b[1]*b[1];
+  return [(a[0]*b[0]+a[1]*b[1])/d, (a[1]*b[0]-a[0]*b[1])/d];
+}
+function cabs(a) { return Math.sqrt(a[0]*a[0] + a[1]*a[1]); }
+function cexp(a) {
+  const r = Math.exp(a[0]);
+  return [r*Math.cos(a[1]), r*Math.sin(a[1])];
+}
+function ctanh(z) {
+  // tanh(z) = (e^(2z) - 1) / (e^(2z) + 1)
+  const e2z = cexp([2*z[0], 2*z[1]]);
+  return cdiv([e2z[0]-1, e2z[1]], [e2z[0]+1, e2z[1]]);
+}
+
+// ─────────────────── RF MATH ───────────────────
+function interpolate(table, h) {
+  if (h <= table[0][0]) return table[0][1];
+  if (h >= table[table.length-1][0]) return table[table.length-1][1];
+  for (let i = 0; i < table.length-1; i++) {
+    if (h >= table[i][0] && h <= table[i+1][0]) {
+      const f = (h - table[i][0]) / (table[i+1][0] - table[i][0]);
+      return table[i][1] + f * (table[i+1][1] - table[i][1]);
+    }
+  }
+  return 73;
+}
+
+function getAntennaZ(antName, heightFt, freqMHz, centerFreq, custR, custQ) {
+  const ant = ANTENNAS[antName];
+  let r0, q;
+  if (ant.isCustom) { r0 = custR; q = custQ; }
+  else if (ant.needsH) { r0 = interpolate(ant.table, heightFt / (984 / centerFreq)); q = ant.q; }
+  else { r0 = ant.fixedR; q = ant.q; }
+  const x = r0 * q * 2 * (freqMHz - centerFreq) / centerFreq;
+  const r = r0 * (1 + 0.1 * Math.pow((freqMHz - centerFreq) / centerFreq, 2) * q);
+  return { r, x, r0, q };
+}
+
+function mlPer100(cable, f) { return cable.A * Math.sqrt(f) + cable.B * f; }
+
+function calc(rl, xl, z0, freqMHz, lenFt, cable) {
+  const ml100 = mlPer100(cable, freqMHz);
+  const mlDB = ml100 * lenFt / 100;
+
+  // ── SWR on feedline (referenced to feedline's own Z₀) ──
+  const dr = rl - z0, sr = rl + z0;
+  const gMag = Math.sqrt(dr*dr + xl*xl) / Math.sqrt(sr*sr + xl*xl);
+  const swrFeedline = gMag < 0.999 ? (1+gMag)/(1-gMag) : 999;
+
+  // ── Input impedance via full transmission line equation ──
+  // Z_in = Z₀ · (Z_L + Z₀·tanh(γl)) / (Z₀ + Z_L·tanh(γl))
+
+  // Attenuation: dB/100ft → nepers/ft
+  const alphaPerFt = (ml100 / 100) * (Math.log(10) / 20);
+  // Phase: β = 2πf / (984 · VF) rad/ft
+  const betaPerFt = (2 * Math.PI * freqMHz) / (984 * cable.vf);
+
+  const gl = [alphaPerFt * lenFt, betaPerFt * lenFt];
+  const tgh = ctanh(gl);
+
+  const zL = [rl, xl];
+  const z0c = [z0, 0];
+
+  const num = cadd(zL, cmul(z0c, tgh));  // Z_L + Z₀·tanh(γl)
+  const den = cadd(z0c, cmul(zL, tgh));  // Z₀ + Z_L·tanh(γl)
+  const zIn = cmul(z0c, cdiv(num, den)); // Z₀ · (num/den)
+
+  // ── SWR at shack: Γ referenced to 50Ω source ──
+  const zSrc = [SOURCE_Z, 0];
+  const gIn = cdiv(csub(zIn, zSrc), cadd(zIn, zSrc));
+  const gInMag = cabs(gIn);
+  const swrShack = gInMag < 0.999 ? (1+gInMag)/(1-gInMag) : 999;
+
+  // ── Total loss (matched + additional from SWR) ──
+  const a = Math.pow(10, mlDB / 10);
+  let totDB;
+  if (mlDB < 0.001) {
+    totDB = -10 * Math.log10(1 - gMag * gMag);
+  } else {
+    const g2 = gMag * gMag;
+    const n = a*a - g2, d = a * (1 - g2);
+    totDB = (d <= 0 || n <= 0) ? mlDB : 10 * Math.log10(n / d);
+  }
+
+  return {
+    swrFeedline: Math.min(swrFeedline, 999),
+    swrShack: Math.min(swrShack, 999),
+    mlDB, totDB,
+    addlDB: totDB - mlDB,
+    pwr: 100 * Math.pow(10, -totDB / 10),
+    gMag, gInMag,
+    zinR: zIn[0], zinX: zIn[1]
+  };
+}
+
+function fmt(v, d=2) { return v==null||isNaN(v) ? "—" : v.toFixed(d); }
+
+// ─────────────────── TABS ───────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    refreshAll();
+  });
+});
+
+// ─────────────────── CABLE CHECKBOXES ───────────────────
+function buildCableChecks(containerId) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  CABLE_NAMES.forEach(name => {
+    const cable = CABLES[name];
+    const lbl = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = enabledCables[name];
+    cb.addEventListener('change', () => { enabledCables[name] = cb.checked; refreshAll(); });
+    const sw = document.createElement('span');
+    sw.className = 'cable-swatch';
+    sw.style.borderTop = (cable.dash.length ? '2px dashed ' : '2px solid ') + cable.color;
+    lbl.append(cb, sw, ' ' + name);
+    el.appendChild(lbl);
+  });
+}
+
+// ─────────────────── POPULATE SELECTS ───────────────────
+const bsSel = document.getElementById('bs-band');
+Object.keys(BANDS).forEach(b => { const o = document.createElement('option'); o.value=b; o.text=b; bsSel.add(o); });
+bsSel.value = '40m';
+
+const antSel = document.getElementById('bs-antenna');
+Object.keys(ANTENNAS).forEach(a => { const o = document.createElement('option'); o.value=a; o.text=a; antSel.add(o); });
+
+// ─────────────────── CHART INSTANCES ───────────────────
+let sfBarChart, bsLineChart, lsPowerChart, lsLossChart;
+
+function makeBarChart(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.raw,1)+'%' }}},
+      scales: { y: { min: 0, max: 100, title: { display: false } } }
+    }
+  });
+}
+
+function makeLineChart(ctx, xLabel, yLabel) {
+  return new Chart(ctx, {
+    type: 'line',
+    data: { datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
+      plugins: { legend: { labels: { font: { size: 11 } } },
+        tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { type: 'linear', title: { display: true, text: xLabel, font: { size: 12 } },
+          ticks: { font: { size: 11 } } },
+        y: { title: { display: true, text: yLabel, font: { size: 12 } },
+          ticks: { font: { size: 11 } } }
+      },
+      elements: { point: { radius: 0, hoverRadius: 4 }, line: { tension: 0.2 } }
+    }
+  });
+}
+
+function initCharts() {
+  sfBarChart = makeBarChart(document.getElementById('sf-bar-chart'));
+  bsLineChart = makeLineChart(document.getElementById('bs-chart'), 'Frequency (MHz)', 'SWR (at shack — 50Ω source)');
+  lsPowerChart = makeLineChart(document.getElementById('ls-power-chart'), 'Cable Length (ft)', 'Power Delivered (%)');
+  lsLossChart = makeLineChart(document.getElementById('ls-loss-chart'), 'Cable Length (ft)', 'Total Loss (dB)');
+}
+
+// ─────────────────── SINGLE FREQUENCY UPDATE ───────────────────
+function updateSingle() {
+  const rl = +document.getElementById('sf-r').value;
+  const xl = +document.getElementById('sf-x').value;
+  const freq = +document.getElementById('sf-freq').value;
+  const len = +document.getElementById('sf-len').value;
+  document.getElementById('sf-feedpoint').textContent =
+    'Feedpoint: ' + rl + (xl>=0?'+':'') + xl + 'j Ω';
+
+  const results = {};
+  let bestPwr = 0;
+  CABLE_NAMES.forEach(n => {
+    if (!enabledCables[n]) return;
+    results[n] = calc(rl, xl, CABLES[n].z0, freq, len, CABLES[n]);
+    if (results[n].pwr > bestPwr) bestPwr = results[n].pwr;
+  });
+
+  let html = '<thead><tr><th style="text-align:left">Cable</th><th>Z₀</th>'
+    + '<th>SWR (feedline)</th><th>SWR (shack)</th>'
+    + '<th>Matched Loss</th><th>Addl (SWR)</th><th>Total Loss</th><th>Power Delivered</th></tr></thead><tbody>';
+  CABLE_NAMES.forEach(n => {
+    if (!enabledCables[n]) return;
+    const r = results[n], c = CABLES[n];
+    const isBest = Math.abs(r.pwr - bestPwr) < 0.01;
+    html += '<tr' + (isBest?' class="best"':'') + '>'
+      + '<td style="color:'+c.color+'">'+n+'</td>'
+      + '<td>'+c.z0+'Ω</td>'
+      + '<td>'+fmt(r.swrFeedline)+':1</td>'
+      + '<td>'+fmt(r.swrShack)+':1</td>'
+      + '<td>'+fmt(r.mlDB)+' dB</td>'
+      + '<td>'+fmt(r.addlDB)+' dB</td>'
+      + '<td style="font-weight:600">'+fmt(r.totDB)+' dB</td>'
+      + '<td style="font-weight:600;'+(isBest?'color:#2563eb':'')+'">'
+        +fmt(r.pwr,1)+'%'+(isBest?' <span class="star">★</span>':'')+'</td></tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('sf-table').innerHTML = html;
+
+  const labels = [], data = [], colors = [];
+  CABLE_NAMES.forEach(n => {
+    if (!enabledCables[n] || !results[n]) return;
+    labels.push(n.replace(' (75Ω)',' 75').replace(' (50Ω)',' 50'));
+    data.push(results[n].pwr);
+    colors.push(CABLES[n].color);
+  });
+  sfBarChart.data.labels = labels;
+  sfBarChart.data.datasets[0].data = data;
+  sfBarChart.data.datasets[0].backgroundColor = colors;
+  sfBarChart.update();
+}
+
+// ─────────────────── BAND SWEEP UPDATE ───────────────────
+function updateBandSweep() {
+  const bandKey = bsSel.value;
+  const antName = antSel.value;
+  const ant = ANTENNAS[antName];
+  const heightFt = +document.getElementById('bs-height').value;
+  const custR = +document.getElementById('bs-customr').value;
+  const custQ = +document.getElementById('bs-customq').value;
+  const len = +document.getElementById('bs-len').value;
+  const metric = document.getElementById('bs-metric').value;
+  const [fStart, fEnd, fCenter] = BANDS[bandKey];
+
+  document.getElementById('bs-height-group').style.display = ant.needsH ? '' : 'none';
+  document.getElementById('bs-height-label').textContent = (ant.hLabel||'Height') + ' (ft)';
+  document.getElementById('bs-customr-group').style.display = ant.isCustom ? '' : 'none';
+  document.getElementById('bs-customq-group').style.display = ant.isCustom ? '' : 'none';
+
+  const cz = getAntennaZ(antName, heightFt, fCenter, fCenter, custR, custQ);
+  let info = '<strong>Antenna model:</strong> ' + ant.desc + '<br>';
+  if (ant.needsH) {
+    const hLam = heightFt / (984 / fCenter);
+    info += 'Height: '+heightFt+' ft = <strong>'+fmt(hLam,3)+'λ</strong> at '+fCenter+' MHz → '
+      + 'Feedpoint R₀ ≈ <strong>'+fmt(cz.r0,0)+' Ω</strong> at band center (Q ≈ '+cz.q+')';
+  } else if (ant.isCustom) {
+    info += 'Feedpoint R₀ = <strong>'+custR+' Ω</strong>, Q = '+custQ;
+  } else {
+    info += 'Fixed feedpoint R₀ ≈ <strong>'+fmt(cz.r0,0)+' Ω</strong> (Q ≈ '+cz.q+')';
+  }
+  document.getElementById('bs-info').innerHTML = info;
+
+  const steps = 80;
+  const datasets = [];
+  CABLE_NAMES.forEach(name => {
+    if (!enabledCables[name]) return;
+    const cable = CABLES[name];
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const f = fStart + (fEnd - fStart) * i / steps;
+      const az = getAntennaZ(antName, heightFt, f, fCenter, custR, custQ);
+      const r = calc(az.r, az.x, cable.z0, f, len, cable);
+      let y;
+      if (metric === 'swrShack') y = Math.min(r.swrShack, 10);
+      else if (metric === 'swrFeedline') y = Math.min(r.swrFeedline, 10);
+      else if (metric === 'totalLoss') y = r.totDB;
+      else if (metric === 'matchedLoss') y = r.mlDB;
+      else y = r.pwr;
+      pts.push({ x: f, y });
+    }
+    datasets.push({
+      label: name, data: pts, borderColor: cable.color, backgroundColor: cable.color+'33',
+      borderWidth: 2, borderDash: cable.dash, fill: false
+    });
+  });
+
+  const metricLabels = {
+    swrShack: 'SWR (at shack — 50Ω source)', swrFeedline: 'SWR (on feedline)',
+    totalLoss: 'Total Loss (dB)', matchedLoss: 'Matched Loss (dB)', power: 'Power Delivered (%)'
+  };
+
+  bsLineChart.data.datasets = datasets;
+  bsLineChart.options.scales.x.min = fStart;
+  bsLineChart.options.scales.x.max = fEnd;
+  bsLineChart.options.scales.x.ticks.callback = v => v.toFixed(2);
+  bsLineChart.options.scales.y.title.text = metricLabels[metric];
+  if (metric === 'power') { bsLineChart.options.scales.y.min = undefined; bsLineChart.options.scales.y.max = 100; }
+  else if (metric === 'swrShack' || metric === 'swrFeedline') { bsLineChart.options.scales.y.min = 1; bsLineChart.options.scales.y.max = undefined; }
+  else { bsLineChart.options.scales.y.min = undefined; bsLineChart.options.scales.y.max = undefined; }
+
+  bsLineChart.options.plugins.tooltip.callbacks.label = function(ctx) {
+    const v = ctx.raw.y;
+    if (metric==='swrShack'||metric==='swrFeedline') return ctx.dataset.label+': '+fmt(v,2)+':1';
+    if (metric==='power') return ctx.dataset.label+': '+fmt(v,1)+'%';
+    return ctx.dataset.label+': '+fmt(v,2)+' dB';
+  };
+  bsLineChart.options.plugins.tooltip.callbacks.title = function(items) {
+    return items[0]?.raw.x.toFixed(3) + ' MHz';
+  };
+
+  bsLineChart.update();
+}
+
+// ─────────────────── LENGTH SWEEP UPDATE ───────────────────
+function updateLengthSweep() {
+  const rl = +document.getElementById('ls-r').value;
+  const xl = +document.getElementById('ls-x').value;
+  const freq = +document.getElementById('ls-freq').value;
+  const maxLen = +document.getElementById('ls-maxlen').value;
+  const steps = 60;
+
+  const pwrSets = [], lossSets = [];
+  CABLE_NAMES.forEach(name => {
+    if (!enabledCables[name]) return;
+    const cable = CABLES[name];
+    const pwrPts = [], lossPts = [];
+    for (let i = 0; i <= steps; i++) {
+      const len = maxLen * i / steps;
+      const r = calc(rl, xl, cable.z0, freq, len, cable);
+      pwrPts.push({ x: len, y: r.pwr });
+      lossPts.push({ x: len, y: r.totDB });
+    }
+    const base = { label: name, borderColor: cable.color, borderWidth: 2, borderDash: cable.dash, fill: false };
+    pwrSets.push({ ...base, data: pwrPts, backgroundColor: cable.color+'33' });
+    lossSets.push({ ...base, data: lossPts, backgroundColor: cable.color+'33' });
+  });
+
+  lsPowerChart.data.datasets = pwrSets;
+  lsPowerChart.options.scales.y.min = 0; lsPowerChart.options.scales.y.max = 100;
+  lsPowerChart.options.scales.x.max = maxLen;
+  lsPowerChart.options.plugins.tooltip.callbacks.label = c => c.dataset.label+': '+fmt(c.raw.y,1)+'%';
+  lsPowerChart.options.plugins.tooltip.callbacks.title = items => items[0]?.raw.x.toFixed(0)+' ft';
+  lsPowerChart.update();
+
+  lsLossChart.data.datasets = lossSets;
+  lsLossChart.options.scales.x.max = maxLen;
+  lsLossChart.options.plugins.tooltip.callbacks.label = c => c.dataset.label+': '+fmt(c.raw.y,2)+' dB';
+  lsLossChart.options.plugins.tooltip.callbacks.title = items => items[0]?.raw.x.toFixed(0)+' ft';
+  lsLossChart.update();
+}
+
+// ─────────────────── WIRING ───────────────────
+function refreshAll() {
+  updateSingle();
+  updateBandSweep();
+  updateLengthSweep();
+}
+
+function wireInputs(ids, fn) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', fn);
+    el.addEventListener('change', fn);
+  });
+}
+
+buildCableChecks('bs-cable-checks');
+buildCableChecks('ls-cable-checks');
+initCharts();
+
+wireInputs(['sf-r','sf-x','sf-freq','sf-len'], updateSingle);
+wireInputs(['bs-band','bs-antenna','bs-height','bs-customr','bs-customq','bs-len','bs-metric'], updateBandSweep);
+wireInputs(['ls-r','ls-x','ls-freq','ls-maxlen'], updateLengthSweep);
+
+document.getElementById('bs-cable-checks').addEventListener('change', () => {
+  buildCableChecks('ls-cable-checks');
+  refreshAll();
+});
+document.getElementById('ls-cable-checks').addEventListener('change', () => {
+  buildCableChecks('bs-cable-checks');
+  refreshAll();
+});
+
+refreshAll();
+</script>
+</body>
+</html>
