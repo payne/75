@@ -25,16 +25,16 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
         }
 
         .title-bar img {
-            height: 60px; /* adjust-logo-size */
+            height: clamp(40px, 5vh, 80px); /* adjust-logo-size */
         }
 
         .title-bar h1 {
-            font-size: 30px; /* adjust-font-size */
+            font-size: clamp(18px, 2.5vw, 40px); /* adjust-font-size */
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -45,7 +45,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px 60px;
+            padding: 2.5vh 5vw;
         }
 
         .hero-image img {
@@ -55,16 +55,16 @@
         }
 
         .presentation-title {
-            font-size: 52px; /* adjust-font-size */
+            font-size: clamp(30px, 4.3vw, 64px); /* adjust-font-size */
             font-weight: bold;
             color: #1a5276;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 2.5vh;
             margin-bottom: 15px;
         }
 
         .presenter {
-            font-size: 28px; /* adjust-font-size */
+            font-size: clamp(18px, 2.3vw, 36px); /* adjust-font-size */
             color: #555;
             text-align: center;
         }
@@ -80,7 +80,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;

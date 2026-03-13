@@ -43,18 +43,18 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
         }
 
         .title-bar img {
-            height: 60px;
+            height: clamp(40px, 5vh, 80px);
         }
 
         .title-bar h1 {
-            font-size: 30px;
+            font-size: clamp(18px, 2.5vw, 40px);
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -63,24 +63,24 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 30px 60px;
+            padding: 2.5vh 5vw;
             position: relative;
             z-index: 1;
         }
 
         .content-header {
-            font-size: 42px;
+            font-size: clamp(26px, 3.5vw, 54px);
             font-weight: bold;
             color: #1a5276;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2.5vh;
         }
 
         .explanation {
-            font-size: 24px;
+            font-size: clamp(16px, 2vw, 30px);
             color: #333;
             line-height: 1.5;
-            max-width: 850px;
+            max-width: 90%;
             margin: 0 auto 30px auto;
             text-align: center;
         }
@@ -90,12 +90,12 @@
             border: 2px solid #1a5276;
             border-radius: 10px;
             padding: 25px 35px;
-            max-width: 750px;
+            max-width: 90%;
             margin: 0 auto 25px auto;
         }
 
         .scenario-header {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             font-weight: bold;
             color: #1a5276;
             margin-bottom: 15px;
@@ -106,7 +106,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 22px;
+            font-size: clamp(14px, 1.8vw, 28px);
             color: #333;
             padding: 8px 0;
             border-bottom: 1px solid #ddd;
@@ -126,7 +126,7 @@
 
         .question-box {
             text-align: center;
-            font-size: 26px;
+            font-size: clamp(16px, 2.2vw, 32px);
             font-weight: bold;
             color: #1a5276;
             margin-top: 15px;
@@ -134,7 +134,7 @@
 
         .answer {
             text-align: center;
-            font-size: 22px;
+            font-size: clamp(14px, 1.8vw, 28px);
             color: #555;
             margin-top: 12px;
             font-style: italic;
@@ -151,7 +151,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;

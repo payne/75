@@ -43,18 +43,18 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
         }
 
         .title-bar img {
-            height: 60px;
+            height: clamp(40px, 5vh, 80px);
         }
 
         .title-bar h1 {
-            font-size: 30px;
+            font-size: clamp(18px, 2.5vw, 40px);
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -65,13 +65,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px 60px;
+            padding: 2.5vh 5vw;
             position: relative;
             z-index: 1;
         }
 
         .content-header {
-            font-size: 42px;
+            font-size: clamp(26px, 3.5vw, 54px);
             font-weight: bold;
             color: #a93226;
             text-align: center;
@@ -79,12 +79,12 @@
         }
 
         .bullet-list {
-            font-size: 28px;
+            font-size: clamp(18px, 2.3vw, 36px);
             color: #333;
             line-height: 1.6;
             list-style-type: disc;
             padding-left: 50px;
-            max-width: 850px;
+            max-width: 90%;
         }
 
         .bullet-list li {
@@ -92,19 +92,19 @@
         }
 
         .bullet-detail {
-            font-size: 21px;
+            font-size: clamp(14px, 1.75vw, 28px);
             color: #666;
             display: block;
             margin-top: 4px;
         }
 
         .best-header {
-            font-size: 42px;
+            font-size: clamp(26px, 3.5vw, 54px);
             font-weight: bold;
             color: #1a7a2e;
             text-align: center;
-            margin-top: 30px;
-            margin-bottom: 25px;
+            margin-top: 2.5vh;
+            margin-bottom: 2vh;
         }
 
         .nav-buttons {
@@ -118,7 +118,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;

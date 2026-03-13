@@ -43,18 +43,18 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
         }
 
         .title-bar img {
-            height: 60px;
+            height: clamp(40px, 5vh, 80px);
         }
 
         .title-bar h1 {
-            font-size: 30px;
+            font-size: clamp(18px, 2.5vw, 40px);
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -63,29 +63,29 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 25px 60px;
+            padding: 2vh 5vw;
             position: relative;
             z-index: 1;
         }
 
         .content-header {
-            font-size: 42px;
+            font-size: clamp(26px, 3.5vw, 54px);
             font-weight: bold;
             color: #1a5276;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 2vh;
         }
 
         .connector-list {
-            max-width: 850px;
+            max-width: 90%;
             margin: 0 auto;
         }
 
         .connector-item {
-            margin-bottom: 16px;
+            margin-bottom: 1.3vh;
             display: flex;
             gap: 10px;
-            font-size: 22px;
+            font-size: clamp(14px, 1.8vw, 28px);
             color: #333;
             line-height: 1.4;
         }
@@ -94,7 +94,7 @@
             font-weight: bold;
             color: #1a5276;
             white-space: nowrap;
-            min-width: 250px;
+            min-width: 18%;
         }
 
         .connector-desc {
@@ -104,16 +104,16 @@
         .recommended {
             color: #1a7a2e;
             font-weight: bold;
-            font-size: 18px;
+            font-size: clamp(12px, 1.5vw, 24px);
         }
 
         .note-text {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #555;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 1.6vh;
             font-style: italic;
-            max-width: 800px;
+            max-width: 90%;
             margin-left: auto;
             margin-right: auto;
         }
@@ -129,7 +129,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;

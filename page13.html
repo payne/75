@@ -43,18 +43,18 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
         }
 
         .title-bar img {
-            height: 60px;
+            height: clamp(40px, 5vh, 80px);
         }
 
         .title-bar h1 {
-            font-size: 30px;
+            font-size: clamp(18px, 2.5vw, 40px);
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -65,13 +65,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px 60px;
+            padding: 2.5vh 5vw;
             position: relative;
             z-index: 1;
         }
 
         .content-header {
-            font-size: 42px;
+            font-size: clamp(26px, 3.5vw, 54px);
             font-weight: bold;
             color: #1a5276;
             text-align: center;
@@ -79,16 +79,16 @@
         }
 
         .bullet-list {
-            font-size: 26px;
+            font-size: clamp(16px, 2.2vw, 32px);
             color: #333;
             line-height: 1.6;
             list-style-type: disc;
             padding-left: 50px;
-            max-width: 850px;
+            max-width: 90%;
         }
 
         .bullet-list li {
-            margin-bottom: 20px;
+            margin-bottom: 1.6vh;
         }
 
         .nav-buttons {
@@ -102,7 +102,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;

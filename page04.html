@@ -43,18 +43,18 @@
             padding: 20px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5vw;
             flex-shrink: 0;
             position: relative;
             z-index: 1;
         }
 
         .title-bar img {
-            height: 60px; /* adjust-logo-size */
+            height: clamp(40px, 5vh, 80px); /* adjust-logo-size */
         }
 
         .title-bar h1 {
-            font-size: 30px; /* adjust-font-size */
+            font-size: clamp(18px, 2.5vw, 40px); /* adjust-font-size */
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -63,22 +63,22 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 25px 60px;
+            padding: 2vh 5vw;
             position: relative;
             z-index: 1;
         }
 
         .content-header {
-            font-size: 40px; /* adjust-font-size */
+            font-size: clamp(24px, 3.3vw, 52px); /* adjust-font-size */
             font-weight: bold;
             color: #1a5276;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 2vh;
         }
 
         .two-column {
             display: flex;
-            gap: 50px;
+            gap: 4vw;
             flex: 1;
         }
 
@@ -87,9 +87,9 @@
         }
 
         .column-header {
-            font-size: 26px; /* adjust-font-size */
+            font-size: clamp(16px, 2.2vw, 32px); /* adjust-font-size */
             font-weight: bold;
-            margin-bottom: 16px;
+            margin-bottom: 1.3vh;
             border-bottom: 3px solid #1a5276;
             padding-bottom: 8px;
         }
@@ -103,7 +103,7 @@
         }
 
         .bullet-list {
-            font-size: 21px; /* adjust-font-size */
+            font-size: clamp(14px, 1.75vw, 28px); /* adjust-font-size */
             color: #333;
             line-height: 1.5;
             list-style-type: disc;
@@ -125,7 +125,7 @@
         }
 
         .nav-buttons a {
-            font-size: 20px;
+            font-size: clamp(13px, 1.7vw, 26px);
             color: #1a5276;
             text-decoration: none;
             padding: 8px 20px;
